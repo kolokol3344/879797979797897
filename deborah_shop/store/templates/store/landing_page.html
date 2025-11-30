@@ -1,0 +1,184 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+    /* Landing Page Styles */
+    .landing-container {
+        position: relative;
+        min-height: 80vh;
+        width: 100%;
+        overflow: hidden;
+        
+        /* Background */
+        {% if page.background_type == 'color' %}
+            background-color: {{ page.background_color }};
+        {% elif page.background_type == 'gradient' %}
+            background: {{ page.background_gradient }};
+        {% elif page.background_type == 'image' and page.background_image %}
+            background-image: url('{{ page.background_image.url }}');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        {% endif %}
+    }
+    
+    .landing-block {
+        position: absolute;
+        transition: all 0.3s ease;
+    }
+    
+    .landing-block.text-block {
+        max-width: 90%;
+        padding: 20px;
+    }
+    
+    .landing-block.image-block img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .landing-block.button-block .btn-landing {
+        padding: 15px 40px;
+        font-size: 16px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        border: none;
+        border-radius: 0;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .landing-block.button-block .btn-landing:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    
+    /* Mobile Adaptations */
+    @media (max-width: 768px) {
+        .landing-container {
+            min-height: 60vh;
+            background-attachment: scroll !important;
+        }
+        
+        .landing-block {
+            position: relative !important;
+            left: 0 !important;
+            top: auto !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin-bottom: 20px;
+            padding: 15px;
+        }
+        
+        .landing-block.text-block {
+            font-size: 14px !important;
+        }
+        
+        .landing-block.button-block .btn-landing {
+            width: 100%;
+            padding: 12px 20px;
+            font-size: 14px;
+        }
+        
+        .landing-block.image-block {
+            text-align: center;
+        }
+        
+        .landing-block.image-block img {
+            max-width: 100% !important;
+            width: auto !important;
+        }
+    }
+    
+    /* Landscape Mobile */
+    @media (max-width: 900px) and (orientation: landscape) {
+        .landing-container {
+            min-height: 100vh;
+        }
+        
+        .landing-block {
+            font-size: 12px !important;
+        }
+    }
+</style>
+
+<div class="landing-container">
+    {% for block in page.blocks.all %}
+        
+        {% if block.block_type == 'text' %}
+            <!-- Text Block -->
+            <div class="landing-block text-block" style="
+                top: {{ block.position_top }}%; 
+                left: {{ block.position_left }}%;
+                color: {{ block.text_color }};
+                font-family: '{{ block.text_font }}', sans-serif;
+                font-size: {{ block.text_size }}px;
+                text-align: {{ block.text_alignment }};
+            ">
+                {{ block.text_content|linebreaks }}
+            </div>
+        
+        {% elif block.block_type == 'image' %}
+            <!-- Image Block -->
+            <div class="landing-block image-block" style="
+                top: {{ block.position_top }}%; 
+                left: {{ block.position_left }}%;
+            ">
+                {% if block.image %}
+                    <img src="{{ block.image.url }}" alt="Image" style="width: {{ block.image_width }}%;">
+                {% endif %}
+            </div>
+        
+        {% elif block.block_type == 'button' %}
+            <!-- Button Block -->
+            <div class="landing-block button-block" style="
+                top: {{ block.position_top }}%; 
+                left: {{ block.position_left }}%;
+            ">
+                <a href="{{ block.button_link }}" class="btn-landing" style="
+                    background-color: {{ block.button_color }};
+                    color: white;
+                ">
+                    {{ block.button_text }}
+                </a>
+            </div>
+        
+        {% elif block.block_type == 'products' and block.products_category %}
+            <!-- Products Block -->
+            <div class="landing-block products-block" style="
+                top: {{ block.position_top }}%; 
+                left: {{ block.position_left }}%;
+                width: 90%;
+            ">
+                <div class="row g-3">
+                    {% for product in block.products_category.product_set.all|slice:":"|slice:block.products_limit %}
+                    <div class="col-6 col-md-3">
+                        <div class="product-card">
+                            <div class="product-image-wrapper">
+                                <a href="{% url 'product_detail' product.id %}">
+                                    {% if product.image %}
+                                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                                    {% endif %}
+                                </a>
+                            </div>
+                            <div class="product-info">
+                                <div class="product-name">{{ product.name }}</div>
+                                <div class="product-price">{{ product.price }} ₴</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+        
+    {% endfor %}
+</div>
+
+{% endblock %}

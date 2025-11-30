@@ -1,0 +1,81 @@
+
+{% extends 'store/base.html' %}
+{% block content %}
+<h3 class="text-center mb-5">ВАШ КОШИК</h3>
+{% if cart_items %}
+<div class="row">
+    <div class="col-lg-7 mb-5">
+        {% for item in cart_items %}
+        <div class="d-flex align-items-center border-bottom py-4">
+            <div style="width: 100px; aspect-ratio: 3/4; flex-shrink: 0;">
+                {% if item.product.image %}<img src="{{ item.product.image.url }}" class="w-100 h-100" style="object-fit: cover;">{% endif %}
+            </div>
+            <div class="ms-4 flex-grow-1">
+                <h6 class="mb-1 text-uppercase">{{ item.product.name }}</h6>
+                <small class="text-muted d-block mb-2">Кількість: {{ item.qty }}</small>
+                <div class="d-flex gap-2">
+                    <form method="POST" action="{% url 'update_cart' item.product.id %}">
+                        {% csrf_token %}<input type="hidden" name="action" value="subtract">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary rounded-0 px-2 py-0">-</button>
+                    </form>
+                    <form method="POST" action="{% url 'update_cart' item.product.id %}">
+                        {% csrf_token %}<input type="hidden" name="action" value="add">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary rounded-0 px-2 py-0">+</button>
+                    </form>
+                </div>
+            </div>
+            <div class="fw-bold fs-5">{{ item.total }} ₴</div>
+        </div>
+        {% endfor %}
+        <div class="text-end mt-3"><a href="{% url 'clear_cart' %}" class="text-danger small text-decoration-none">ОЧИСТИТИ КОШИК</a></div>
+    </div>
+    
+    <div class="col-lg-5">
+        <div class="bg-light p-5">
+            <h4 class="mb-4 text-center">ОФОРМЛЕННЯ</h4>
+            <div class="d-flex justify-content-between mb-4 border-bottom pb-2">
+                <span>Всього до сплати:</span>
+                <span class="fw-bold fs-4">{{ total_price }} ₴</span>
+            </div>
+            
+            <form action="{% url 'checkout' %}" method="POST">
+                {% csrf_token %}
+                <h6 class="text-uppercase mb-3 mt-4">Контактні дані</h6>
+                <div class="row g-2 mb-2">
+                    <div class="col-6"><input type="text" name="first_name" class="form-control" placeholder="Ім'я" required value="{{ user.first_name }}"></div>
+                    <div class="col-6"><input type="text" name="last_name" class="form-control" placeholder="Прізвище" required value="{{ user.last_name }}"></div>
+                </div>
+                <input type="tel" name="phone" class="form-control mb-3" placeholder="Телефон" required value="{{ user.profile.phone }}">
+                
+                <h6 class="text-uppercase mb-3 mt-4">Доставка (Нова Пошта)</h6>
+                <div class="mb-2"><select id="city_select" class="form-select" style="width:100%"></select><input type="hidden" name="city_name" id="cn"><input type="hidden" name="city_ref" id="cr"></div>
+                <div class="mb-3"><select id="warehouse_select" class="form-select" style="width:100%" disabled></select><input type="hidden" name="warehouse_name" id="wn"><input type="hidden" name="warehouse_ref" id="wr"></div>
+                
+                <h6 class="text-uppercase mb-3 mt-4">Оплата</h6>
+                <div class="form-check mb-2"><input type="radio" name="payment" value="cod" class="form-check-input" checked><label class="form-check-label">Накладений платіж</label></div>
+                <div class="form-check mb-2"><input type="radio" name="payment" value="liqpay" class="form-check-input"><label class="form-check-label">LiqPay (Card)</label></div>
+                <div class="form-check mb-2"><input type="radio" name="payment" value="wayforpay" class="form-check-input"><label class="form-check-label">WayForPay (Card)</label></div>
+                
+                <button class="btn btn-dark w-100 py-3 mt-4 fs-6">ПІДТВЕРДИТИ ЗАМОВЛЕННЯ</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <p class="text-muted mb-4">Ваш кошик порожній</p>
+    <a href="/" class="btn btn-dark px-5">ПЕРЕЙТИ В КАТАЛОГ</a>
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    const API='{{ np_key }}';
+    $('#city_select').select2({theme:'bootstrap-5',placeholder:'Оберіть місто...',minimumInputLength:2,ajax:{url:'https://api.novaposhta.ua/v2.0/json/',type:'POST',dataType:'json',data:p=>JSON.stringify({apiKey:API,modelName:"Address",calledMethod:"searchSettlements",methodProperties:{CityName:p.term,Limit:"20"}}),processResults:d=>({results:d.data[0].Addresses.map(i=>({id:i.DeliveryCity,text:i.Present,ref:i.DeliveryCity}))})}});
+    $('#city_select').on('select2:select',e=>{let d=e.params.data; $('#cn').val(d.text);$('#cr').val(d.ref); $('#warehouse_select').prop("disabled",false).val(null).empty();loadWH(d.ref);});
+    function loadWH(ref){$('#warehouse_select').select2({theme:'bootstrap-5',placeholder:'Оберіть відділення',ajax:{url:'https://api.novaposhta.ua/v2.0/json/',type:'POST',dataType:'json',data:p=>JSON.stringify({apiKey:API,modelName:"Address",calledMethod:"getWarehouses",methodProperties:{CityRef:ref,FindByString:p.term||""}}),processResults:d=>({results:d.data.map(i=>({id:i.Description,text:i.Description,ref:i.Ref}))})}});}
+    $('#warehouse_select').on('select2:select',e=>{let d=e.params.data; $('#wn').val(d.text);$('#wr').val(d.ref);});
+});
+</script>
+{% endblock %}

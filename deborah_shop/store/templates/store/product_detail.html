@@ -1,0 +1,191 @@
+{% extends 'store/base.html' %}
+
+{% block content %}
+
+<div class="row mt-4">
+    <!-- Product Gallery -->
+    <div class="col-md-7 mb-4">
+        <div class="row g-2">
+            <!-- Thumbnails (Desktop only) -->
+            <div class="col-2 d-none d-md-block">
+                {% if product.image %}
+                <img src="{{ product.image.url }}" class="img-fluid mb-2" style="cursor: pointer; border: 1px solid #e0e0e0;" onclick="document.getElementById('mainImg').src=this.src">
+                {% endif %}
+                {% for img in product.images.all %}
+                <img src="{{ img.image.url }}" class="img-fluid mb-2" style="cursor: pointer; border: 1px solid #e0e0e0;" onclick="document.getElementById('mainImg').src=this.src">
+                {% endfor %}
+            </div>
+            
+            <!-- Main Image -->
+            <div class="col-md-10">
+                <div style="height: 650px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                    {% if product.image %}
+                    <img id="mainImg" src="{{ product.image.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                    <div class="text-muted">NO PHOTO</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Product Info -->
+    <div class="col-md-5 ps-md-5 py-3">
+        <small class="text-muted text-uppercase" style="letter-spacing: 1px; font-size: 11px;">
+            {{ product.category }}
+        </small>
+        <h1 class="mb-2 mt-1" style="font-size: 32px;">{{ product.name }}</h1>
+        <h3 class="mb-4 fw-light">{{ product.price }} ₴</h3>
+        
+        <p class="text-muted mb-4">{{ product.description }}</p>
+        
+        <!-- Size Selector -->
+        {% if product.sizes %}
+        <div class="mb-4">
+            <label class="form-label text-uppercase small fw-bold">{{ t.size }}</label>
+            <select class="form-select">
+                <option>{{ t.select_size }}</option>
+                {% with sizes=product.sizes|split:"," %}
+                    {% for size in sizes %}
+                    <option>{{ size|trim }}</option>
+                    {% endfor %}
+                {% endwith %}
+            </select>
+        </div>
+        {% endif %}
+        
+        <!-- Color Selector -->
+        {% if product.colors %}
+        <div class="mb-4">
+            <label class="form-label text-uppercase small fw-bold">{{ t.color }}</label>
+            <select class="form-select">
+                <option>{{ t.select_color }}</option>
+                {% with colors=product.colors|split:"," %}
+                    {% for color in colors %}
+                    <option>{{ color|trim }}</option>
+                    {% endfor %}
+                {% endwith %}
+            </select>
+        </div>
+        {% endif %}
+        
+        <!-- Action Buttons -->
+        <div class="d-flex gap-2 mb-5">
+            <a href="{% url 'add_to_cart' product.id %}" class="btn btn-dark flex-grow-1 py-3">
+                {{ t.add_to_cart|upper }}
+            </a>
+            <a href="{% url 'toggle_favorite' product.id %}" class="btn btn-outline-dark px-4 py-3">
+                <i class="bi bi-heart{% if is_fav %}-fill text-danger{% endif %}"></i>
+            </a>
+        </div>
+        
+        <!-- Accordion (Details, Delivery) -->
+        <div class="accordion accordion-flush border-top" id="productAccordion">
+            <div class="accordion-item" style="border: none;">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed text-uppercase small fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#details" style="background: transparent; padding: 15px 0;">
+                        {{ t.details }}
+                    </button>
+                </h2>
+                <div id="details" class="accordion-collapse collapse">
+                    <div class="accordion-body small text-muted" style="padding: 15px 0;">
+                        {% if lang == 'uk' %}
+                        Склад: 100% преміум якість. Ручна робота.
+                        {% else %}
+                        Composition: 100% premium quality. Handmade.
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item" style="border: none;">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed text-uppercase small fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#delivery" style="background: transparent; padding: 15px 0;">
+                        {{ t.delivery_returns }}
+                    </button>
+                </h2>
+                <div id="delivery" class="accordion-collapse collapse">
+                    <div class="accordion-body small text-muted" style="padding: 15px 0;">
+                        {% if lang == 'uk' %}
+                        Безкоштовна доставка для замовлень від 2000 грн. Повернення протягом 14 днів.
+                        {% else %}
+                        Free delivery for orders over 2000 UAH. Returns within 14 days.
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reviews Section -->
+        <h5 class="mt-5 mb-3 text-uppercase" style="font-size: 14px; letter-spacing: 1px;">
+            {{ t.reviews }} ({{ product.reviews.count }})
+        </h5>
+        
+        {% for review in product.reviews.all %}
+        <div class="border-bottom py-3">
+            <div class="d-flex justify-content-between">
+                <strong class="small">{{ review.user.username }}</strong>
+                <small class="text-muted">{{ review.created_at|date }}</small>
+            </div>
+            <div class="text-warning small mb-1">
+                {% for i in "12345"|slice:":"|slice:review.rating %}★{% endfor %}
+            </div>
+            <p class="small text-muted mb-0">{{ review.text }}</p>
+        </div>
+        {% empty %}
+        <p class="text-muted small">
+            {% if lang == 'uk' %}Ще немає відгуків.{% else %}No reviews yet.{% endif %}
+        </p>
+        {% endfor %}
+        
+        <!-- Add Review Form (Authenticated Users Only) -->
+        {% if user.is_authenticated %}
+        <form method="POST" class="mt-4 bg-light p-3">
+            {% csrf_token %}
+            <textarea name="text" class="form-control mb-2" placeholder="{% if lang == 'uk' %}Ваш відгук{% else %}Your review{% endif %}" rows="2" style="border-radius: 0;"></textarea>
+            <select name="rating" class="form-select mb-2" style="border-radius: 0;">
+                <option value="5">★★★★★</option>
+                <option value="4">★★★★</option>
+                <option value="3">★★★</option>
+                <option value="2">★★</option>
+                <option value="1">★</option>
+            </select>
+            <button class="btn btn-dark btn-sm w-100">
+                {% if lang == 'uk' %}НАДІСЛАТИ{% else %}SUBMIT{% endif %}
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Related Products -->
+{% if related_products %}
+<h3 class="text-center mt-5 mb-4 text-uppercase" style="letter-spacing: 2px;">
+    {{ t.related }}
+</h3>
+<div class="row g-3">
+    {% for rp in related_products %}
+    <div class="col-6 col-md-3">
+        <div class="product-card">
+            <div class="product-image-wrapper">
+                <a href="{% url 'product_detail' rp.id %}">
+                    {% if rp.image %}
+                    <img src="{{ rp.image.url }}" alt="{{ rp.name }}">
+                    {% endif %}
+                </a>
+            </div>
+            <div class="product-info">
+                <div class="product-category">{{ rp.category }}</div>
+                <div class="product-name">
+                    <a href="{% url 'product_detail' rp.id %}" class="text-dark text-decoration-none">
+                        {{ rp.name }}
+                    </a>
+                </div>
+                <div class="product-price">{{ rp.price }} ₴</div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

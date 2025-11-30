@@ -1,0 +1,753 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{{ settings.site_name|default:"DEBORAH" }}</title>
+    <meta name="description" content="{{ settings.meta_description }}">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    
+    <style>
+        /* ============================================
+           LINGERIEFOX DESIGN SYSTEM
+        ============================================ */
+        :root {
+            /* Colors */
+            --primary: #000000;
+            --secondary: #ffffff;
+            --accent: #d4145a;
+            --gray-light: #f5f5f5;
+            --gray-medium: #e0e0e0;
+            --gray-dark: #666666;
+            
+            /* Fonts */
+            --font-brand: '{{ settings.brand_font|default:"Playfair Display" }}', serif;
+            --font-heading: '{{ settings.headings_font|default:"Playfair Display" }}', serif;
+            --font-body: '{{ settings.body_font|default:"Lato" }}', sans-serif;
+            --font-menu: '{{ settings.menu_font|default:"Montserrat" }}', sans-serif;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background: {{ settings.body_bg_color|default:"#ffffff" }};
+            {% if settings.body_bg_image %}
+            background-image: url('{{ settings.body_bg_image.url }}');
+            background-size: cover;
+            background-attachment: fixed;
+            {% endif %}
+            color: #333;
+            line-height: 1.6;
+            padding-bottom: 80px;
+        }
+        
+        @media (min-width: 768px) {
+            body { padding-bottom: 0; }
+        }
+        
+        /* ============================================
+           TOP BAR (ANNOUNCEMENT)
+        ============================================ */
+        .top-bar {
+            background: var(--primary);
+            color: var(--secondary);
+            padding: 10px 0;
+            font-size: 12px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+        
+        /* ============================================
+           HEADER
+        ============================================ */
+        .main-header {
+            background: {{ settings.header_bg_color|default:"#ffffff" }};
+            {% if settings.header_bg_image %}
+            background-image: url('{{ settings.header_bg_image.url }}');
+            background-size: cover;
+            {% endif %}
+            padding: 20px 0;
+            border-bottom: 1px solid var(--gray-medium);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .navbar-brand {
+            font-family: var(--font-brand);
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: var(--primary) !important;
+            text-decoration: none;
+        }
+        
+        .nav-link {
+            font-family: var(--font-menu);
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 1.5px;
+            font-weight: 500;
+            color: var(--primary) !important;
+            padding: 8px 20px !important;
+            transition: color 0.3s;
+            text-decoration: none;
+        }
+        
+        .nav-link:hover {
+            color: var(--accent) !important;
+        }
+        
+        .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .header-icons a {
+            color: var(--primary);
+            font-size: 20px;
+            position: relative;
+            transition: color 0.3s;
+            text-decoration: none;
+        }
+        
+        .header-icons a:hover {
+            color: var(--accent);
+        }
+        
+        .badge-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        
+        /* Language Switcher */
+        .lang-switcher {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .lang-switcher a {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 3px;
+            transition: all 0.3s;
+            color: var(--gray-dark);
+            text-decoration: none;
+        }
+        
+        .lang-switcher a.active {
+            background: var(--primary);
+            color: var(--secondary);
+        }
+        
+        .lang-switcher a:not(.active):hover {
+            background: var(--gray-light);
+        }
+        
+        /* ============================================
+           PRODUCTS
+        ============================================ */
+        .product-card {
+            background: white;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            position: relative;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+        
+        .product-card:hover {
+            border-color: var(--gray-medium);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+        
+        .product-image-wrapper {
+            aspect-ratio: 3/4;
+            overflow: hidden;
+            background: var(--gray-light);
+            position: relative;
+        }
+        
+        .product-image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+        
+        .product-card:hover .product-image-wrapper img {
+            transform: scale(1.08);
+        }
+        
+        .product-actions {
+            position: absolute;
+            bottom: 15px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+        
+        .product-card:hover .product-actions {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .action-btn {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            transition: all 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .action-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .product-info {
+            padding: 20px 15px;
+            text-align: center;
+        }
+        
+        .product-category {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--gray-dark);
+            margin-bottom: 5px;
+        }
+        
+        .product-name {
+            font-size: 15px;
+            font-weight: 400;
+            color: var(--primary);
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .product-price {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        /* ============================================
+           BUTTONS
+        ============================================ */
+        .btn-dark {
+            background: var(--primary);
+            border: 2px solid var(--primary);
+            color: white;
+            padding: 14px 35px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s;
+            border-radius: 0;
+        }
+        
+        .btn-dark:hover {
+            background: white;
+            color: var(--primary);
+        }
+        
+        .btn-outline-dark {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            padding: 14px 35px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s;
+            border-radius: 0;
+        }
+        
+        .btn-outline-dark:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-outline-dark.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* ============================================
+           FOOTER
+        ============================================ */
+        footer {
+            background: {{ settings.footer_bg_color|default:"#1a1a1a" }};
+            color: {{ settings.footer_text_color|default:"#888888" }};
+            {% if settings.footer_bg_image %}
+            background-image: url('{{ settings.footer_bg_image.url }}');
+            background-size: cover;
+            {% endif %}
+            padding: 60px 0 30px;
+            margin-top: 80px;
+        }
+        
+        footer h5 {
+            font-family: var(--font-heading);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            color: white;
+        }
+        
+        footer a {
+            color: {{ settings.footer_text_color|default:"#888888" }};
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+        
+        footer a:hover {
+            color: white;
+        }
+        
+        .social-icons a {
+            font-size: 20px;
+            margin-right: 15px;
+        }
+        
+        /* ============================================
+           MOBILE NAVIGATION
+        ============================================ */
+        .mobile-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+        }
+        
+        .mobile-nav a {
+            color: var(--gray-dark);
+            text-align: center;
+            text-decoration: none;
+            font-size: 11px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: color 0.3s;
+        }
+        
+        .mobile-nav a:hover,
+        .mobile-nav a.active {
+            color: var(--primary);
+        }
+        
+        .mobile-nav i {
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+        
+        @media (min-width: 768px) {
+            .mobile-nav { display: none; }
+        }
+        
+        /* ============================================
+           FORMS
+        ============================================ */
+        .form-control,
+        .form-select {
+            border-radius: 0;
+            border: 1px solid var(--gray-medium);
+            padding: 12px 15px;
+            font-size: 14px;
+        }
+        
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: none;
+        }
+        
+        /* ============================================
+           MODAL
+        ============================================ */
+        .modal-content {
+            border-radius: 0;
+            border: none;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        /* ============================================
+           ALERTS
+        ============================================ */
+        .alert {
+            border-radius: 0;
+            border: none;
+        }
+        
+        .alert-dark {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* ============================================
+           HERO BANNER
+        ============================================ */
+        .hero-banner {
+            background: url('{% if settings.hero_bg_image %}{{ settings.hero_bg_image.url }}{% else %}https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1600{% endif %}') center/cover;
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin-bottom: 60px;
+        }
+        
+        .hero-banner::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            color: white;
+        }
+        
+        .hero-content h1 {
+            font-family: var(--font-heading);
+            font-size: 56px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-content h1 {
+                font-size: 32px;
+            }
+            .hero-banner {
+                min-height: 300px;
+            }
+        }
+        
+        /* ============================================
+           TICKER
+        ============================================ */
+        {% if settings.show_ticker and ticker_items %}
+        .ticker-wrap {
+            width: 100%;
+            overflow: hidden;
+            background: {{ settings.ticker_bg_color|default:"#000" }};
+            padding: 12px 0;
+        }
+        
+        .ticker {
+            display: inline-block;
+            animation: ticker 30s linear infinite;
+        }
+        
+        .ticker-item {
+            display: inline-block;
+            margin: 0 30px;
+        }
+        
+        .ticker-item img {
+            height: 50px;
+            width: auto;
+            object-fit: contain;
+        }
+        
+        @keyframes ticker {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        {% endif %}
+        
+        /* ============================================
+           UTILITIES
+        ============================================ */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-heading);
+        }
+        
+        .text-accent {
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<!-- Top Bar (Announcement) -->
+<div class="top-bar d-none d-md-block">
+    <div class="container">
+        {{ t.free_shipping }}
+    </div>
+</div>
+
+<!-- Main Header (Desktop) -->
+<header class="main-header d-none d-md-block">
+    <div class="container">
+        <div class="row align-items-center">
+            <!-- Left Menu -->
+            <div class="col-md-3">
+                <nav class="navbar navbar-expand-lg p-0">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/">{{ t.collection }}</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/?category=dress">{{ t.dresses }}</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            
+            <!-- Logo Center -->
+            <div class="col-md-6 text-center">
+                <a class="navbar-brand" href="/">
+                    {{ settings.site_name|default:"DEBORAH" }}
+                </a>
+            </div>
+            
+            <!-- Right Icons -->
+            <div class="col-md-3">
+                <div class="header-icons justify-content-end">
+                    <!-- Language Switcher -->
+                    <div class="lang-switcher">
+                        <a href="{% url 'set_language' 'uk' %}" class="{% if lang == 'uk' %}active{% endif %}">UK</a>
+                        <a href="{% url 'set_language' 'en' %}" class="{% if lang == 'en' %}active{% endif %}">EN</a>
+                    </div>
+                    
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'profile' %}" title="{{ t.profile }}">
+                            <i class="bi bi-person-circle"></i>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'auth' %}" title="{{ t.login }}">
+                            <i class="bi bi-person"></i>
+                        </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'favorites' %}" title="{{ t.favorites }}">
+                        <i class="bi bi-heart"></i>
+                        {% if fav_count %}
+                            <span class="badge-count">{{ fav_count }}</span>
+                        {% endif %}
+                    </a>
+                    
+                    <a href="{% url 'cart' %}" title="{{ t.cart }}">
+                        <i class="bi bi-bag"></i>
+                        {% if cart_count %}
+                            <span class="badge-count">{{ cart_count }}</span>
+                        {% endif %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Mobile Header -->
+<div class="d-md-none bg-white p-3 sticky-top shadow-sm">
+    <div class="d-flex justify-content-between align-items-center">
+        <div class="lang-switcher">
+            <a href="{% url 'set_language' 'uk' %}" class="{% if lang == 'uk' %}active{% endif %}">UK</a>
+            <a href="{% url 'set_language' 'en' %}" class="{% if lang == 'en' %}active{% endif %}">EN</a>
+        </div>
+        <a class="navbar-brand" href="/" style="font-size: 24px;">
+            {{ settings.site_name|default:"DEBORAH" }}
+        </a>
+        <a href="{% url 'cart' %}" class="text-dark position-relative">
+            <i class="bi bi-bag" style="font-size: 22px;"></i>
+            {% if cart_count %}
+                <span class="badge-count">{{ cart_count }}</span>
+            {% endif %}
+        </a>
+    </div>
+</div>
+
+<!-- Ticker -->
+{% if settings.show_ticker and ticker_items %}
+<div class="ticker-wrap">
+    <div class="ticker">
+        {% for item in ticker_items %}{% for item in ticker_items %}
+        <div class="ticker-item">
+            {% if item.get_link != '#' %}
+                <a href="{{ item.get_link }}">
+                    <img src="{{ item.image.url }}" alt="Banner">
+                </a>
+            {% else %}
+                <img src="{{ item.image.url }}" alt="Banner">
+            {% endif %}
+        </div>
+        {% endfor %}{% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Main Content -->
+<main class="flex-grow-1">
+    <div class="container mt-4 mb-5">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-dark text-center">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </div>
+</main>
+
+<!-- Mobile Navigation -->
+<div class="mobile-nav d-md-none">
+    <a href="/" class="{% if request.path == '/' %}active{% endif %}">
+        <i class="bi bi-house"></i>
+        {{ t.home }}
+    </a>
+    <a href="{% url 'favorites' %}" class="{% if 'favorites' in request.path %}active{% endif %}">
+        <i class="bi bi-heart"></i>
+        {{ t.favorites }}
+    </a>
+    <a href="{% url 'cart' %}" class="{% if 'cart' in request.path %}active{% endif %}">
+        <i class="bi bi-bag"></i>
+        {{ t.cart }}
+        {% if cart_count %}
+            <span class="badge-count" style="position: absolute; top: 5px; right: 25%;">{{ cart_count }}</span>
+        {% endif %}
+    </a>
+    {% if user.is_authenticated %}
+        <a href="{% url 'profile' %}" class="{% if 'profile' in request.path %}active{% endif %}">
+            <i class="bi bi-person"></i>
+            {{ t.profile }}
+        </a>
+    {% else %}
+        <a href="{% url 'auth' %}">
+            <i class="bi bi-box-arrow-in-right"></i>
+            {{ t.login }}
+        </a>
+    {% endif %}
+</div>
+
+<!-- Footer -->
+<footer class="d-none d-md-block">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <h5>{{ settings.site_name|default:"DEBORAH" }}</h5>
+                <p class="small">Premium quality lingerie & fashion</p>
+                <div class="social-icons mt-3">
+                    <a href="#"><i class="bi bi-instagram"></i></a>
+                    <a href="#"><i class="bi bi-facebook"></i></a>
+                    <a href="#"><i class="bi bi-telegram"></i></a>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <h5>{% if lang == 'uk' %}Інформація{% else %}Information{% endif %}</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="#">
+                        {% if lang == 'uk' %}Про нас{% else %}About Us{% endif %}
+                    </a></li>
+                    <li class="mb-2"><a href="#">
+                        {% if lang == 'uk' %}Доставка{% else %}Delivery{% endif %}
+                    </a></li>
+                    <li class="mb-2"><a href="#">
+                        {% if lang == 'uk' %}Повернення{% else %}Returns{% endif %}
+                    </a></li>
+                </ul>
+            </div>
+            <div class="col-md-4 mb-4">
+                <h5>{% if lang == 'uk' %}Контакти{% else %}Contact{% endif %}</h5>
+                <p class="small">
+                    Email: info@deborah.com<br>
+                    Phone: +380 (XX) XXX-XX-XX
+                </p>
+            </div>
+        </div>
+        <div class="text-center mt-4 pt-4 border-top border-secondary">
+            <small>&copy; 2025 {{ settings.site_name|default:"DEBORAH" }}. All rights reserved.</small>
+        </div>
+    </div>
+</footer>
+
+<!-- Modal for Quick View -->
+<div class="modal fade" id="qvModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" id="qvContent"></div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+// Quick View Modal
+function openQV(id) {
+    var modal = new bootstrap.Modal(document.getElementById('qvModal'));
+    document.getElementById('qvContent').innerHTML = '<div class="p-5 text-center"><div class="spinner-border"></div></div>';
+    modal.show();
+    fetch(`/modal/${id}/`)
+        .then(r => r.json())
+        .then(d => {
+            document.getElementById('qvContent').innerHTML = d.html;
+        });
+}
+</script>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

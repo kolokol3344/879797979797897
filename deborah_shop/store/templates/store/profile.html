@@ -1,0 +1,97 @@
+{% extends 'store/base.html' %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <!-- Sidebar -->
+        <div class="bg-light p-4" style="position: sticky; top: 100px;">
+            <h5 class="mb-4 text-uppercase" style="letter-spacing: 1px; font-size: 14px;">
+                {{ t.profile }}
+            </h5>
+            <div class="mb-3">
+                <strong class="d-block mb-1 small text-muted text-uppercase">
+                    {% if lang == 'uk' %}Ім'я користувача{% else %}Username{% endif %}
+                </strong>
+                <span>{{ user.username }}</span>
+            </div>
+            {% if user.profile.phone %}
+            <div class="mb-3">
+                <strong class="d-block mb-1 small text-muted text-uppercase">
+                    {{ t.phone }}
+                </strong>
+                <span>{{ user.profile.phone }}</span>
+            </div>
+            {% endif %}
+            <a href="{% url 'logout' %}" class="btn btn-outline-dark w-100 mt-3">
+                {{ t.logout|upper }}
+            </a>
+        </div>
+    </div>
+    
+    <div class="col-md-9">
+        <!-- Order History -->
+        <h4 class="mb-4 text-uppercase" style="letter-spacing: 1px;">
+            {% if lang == 'uk' %}Історія замовлень{% else %}Order History{% endif %}
+        </h4>
+        
+        {% if orders %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-uppercase small" style="font-weight: 600;">ID</th>
+                        <th class="text-uppercase small" style="font-weight: 600;">
+                            {% if lang == 'uk' %}Дата{% else %}Date{% endif %}
+                        </th>
+                        <th class="text-uppercase small" style="font-weight: 600;">
+                            {% if lang == 'uk' %}Сума{% else %}Amount{% endif %}
+                        </th>
+                        <th class="text-uppercase small" style="font-weight: 600;">
+                            {% if lang == 'uk' %}Статус{% else %}Status{% endif %}
+                        </th>
+                        <th class="text-uppercase small" style="font-weight: 600;">
+                            {% if lang == 'uk' %}ТТН{% else %}Tracking{% endif %}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in orders %}
+                    <tr>
+                        <td class="fw-bold">#{{ o.id }}</td>
+                        <td>{{ o.created_at|date:"d.m.Y" }}</td>
+                        <td>{{ o.total_price }} ₴</td>
+                        <td>
+                            {% if o.status == 'new' %}
+                                <span class="badge bg-primary" style="border-radius: 0;">
+                                    {% if lang == 'uk' %}Новий{% else %}New{% endif %}
+                                </span>
+                            {% elif o.status == 'sent' %}
+                                <span class="badge bg-warning" style="border-radius: 0;">
+                                    {% if lang == 'uk' %}Відправлено{% else %}Sent{% endif %}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-success" style="border-radius: 0;">
+                                    {% if lang == 'uk' %}Виконано{% else %}Done{% endif %}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>{{ o.tracking_number|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 bg-light">
+            <i class="bi bi-box-seam text-muted" style="font-size: 48px;"></i>
+            <p class="text-muted mt-3">
+                {% if lang == 'uk' %}Історія порожня{% else %}No orders yet{% endif %}
+            </p>
+            <a href="/" class="btn btn-dark mt-3">{{ t.collection|upper }}</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

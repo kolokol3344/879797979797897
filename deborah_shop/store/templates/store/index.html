@@ -1,0 +1,40 @@
+
+{% extends 'store/base.html' %}
+{% block content %}
+<div class="mb-5 text-center text-white position-relative" style="background: url('{% if settings.hero_bg_image %}{{ settings.hero_bg_image.url }}{% else %}https://source.unsplash.com/random/1600x600?fashion,model{% endif %}') center/cover; height: 500px; display:flex; align-items:center; justify-content:center;">
+    <div style="background: rgba(0,0,0,0.3); padding: 40px; border: 1px solid rgba(255,255,255,0.5);">
+        <h1 class="display-4 fw-bold text-uppercase" style="letter-spacing: 3px;">{{ settings.hero_title|default:"NEW COLLECTION" }}</h1>
+    </div>
+</div>
+
+<div class="d-flex justify-content-center gap-3 mb-5 flex-wrap">
+    <a href="/" class="btn btn-outline-dark {% if not request.GET.category %}active{% endif %}">Всі</a>
+    {% for c in categories %}
+    <a href="/?category={{ c.slug }}" class="btn btn-outline-dark {% if request.GET.category == c.slug %}active{% endif %}">{{ c.name }}</a>
+    {% endfor %}
+</div>
+
+<div class="row g-4">
+    {% for p in products %}
+    <div class="col-6 col-md-4 col-lg-3">
+        <div class="product-card h-100">
+            <div class="img-container">
+                <a href="{% url 'product_detail' p.id %}">
+                    {% if p.image %}<img src="{{ p.image.url }}" loading="lazy">{% else %}<div class="d-flex align-items-center justify-content-center h-100 bg-light text-muted">NO PHOTO</div>{% endif %}
+                </a>
+                <div class="quick-actions">
+                    <span class="action-btn" onclick="openQV({{ p.id }})" title="Швидкий перегляд"><i class="bi bi-eye"></i></span>
+                    <a href="{% url 'toggle_favorite' p.id %}" class="action-btn {% if p.id in fav_ids %}bg-dark text-white{% endif %}" title="Обране"><i class="bi bi-heart{% if p.id in fav_ids %}-fill{% endif %}"></i></a>
+                    <a href="{% url 'add_to_cart' p.id %}" class="action-btn" title="Купити"><i class="bi bi-bag-plus"></i></a>
+                </div>
+            </div>
+            <div class="p-3 text-center">
+                <small class="text-muted text-uppercase" style="font-size: 0.7rem;">{{ p.category }}</small>
+                <h6 class="mb-1 text-truncate fw-normal mt-1"><a href="{% url 'product_detail' p.id %}" class="text-dark text-decoration-none">{{ p.name }}</a></h6>
+                <div class="fw-bold mt-2">{{ p.price }} ₴</div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
